@@ -1,22 +1,24 @@
 // edited 24/11/2022 by Ujean
 
-import { doAPIGet, findErrorMsg } from "src/modules/utilities/apiHelpers";
+import { doAPIGet, doAPIPost, findErrorMsg } from "src/modules/utilities/apiHelpers";
 import { SettingsResponse, SettingsValues, Description, MetaverseSaveSettings, WebrtcSaveSettings, WordpressSaveSettings, DomainsResponse, Domains, SSLClientAcmeSaveSettings, MonitoringSaveSettings, SecuritySaveSettings, AudioThreadingSaveSettings, AudioEnvSaveSettings, AudioBufferSaveSettings, AvatarsSaveSettings, AvatarMixerSaveSettings, EntityServerSaveSettings, EntityScriptServerSaveSettings, MessagesMixerSaveSettings, AssetServerSaveSettings, DescriptionSaveSettings, BroadcastingSaveSettings, AutomaticContentArchivesSaveSettings } from "./interfaces/settings";
 import Log from "../../modules/utilities/log";
+import { Notify } from "quasar";
 
-const axios = require("axios");
 const timers: number[] = [];
 
 // accepted save setting types
 type settingsTypes = MetaverseSaveSettings | WebrtcSaveSettings | WordpressSaveSettings | SSLClientAcmeSaveSettings | MonitoringSaveSettings | SecuritySaveSettings | AudioThreadingSaveSettings | AudioEnvSaveSettings | AudioBufferSaveSettings | AvatarsSaveSettings | AvatarMixerSaveSettings | EntityServerSaveSettings | AssetServerSaveSettings | EntityScriptServerSaveSettings | MessagesMixerSaveSettings | DescriptionSaveSettings | BroadcastingSaveSettings | AutomaticContentArchivesSaveSettings;
+
+const apiSettingsRequestUrl = "settings.json";
+const apiDomainRequestUrl = "api/domains";
 
 export const Settings = {
     // FUNCTION getValues returns values from localhost:40100/settings.json
     async getValues (): Promise<SettingsValues> {
         let response: SettingsValues = {};
         try {
-            const apiRequestUrl = "settings.json";
-            const settingsResponse = await doAPIGet(apiRequestUrl) as SettingsResponse;
+            const settingsResponse = await doAPIGet(apiSettingsRequestUrl) as SettingsResponse;
 
             response = settingsResponse.values;
             return response;
@@ -32,8 +34,7 @@ export const Settings = {
     async getDescriptions (): Promise<Description[]> {
         let response: Description[] = [];
         try {
-            const apiRequestUrl = "settings.json";
-            const settingsResponse = await doAPIGet(apiRequestUrl) as SettingsResponse;
+            const settingsResponse = await doAPIGet(apiSettingsRequestUrl) as SettingsResponse;
 
             response = settingsResponse.descriptions;
             return response;
@@ -45,15 +46,19 @@ export const Settings = {
         return response;
     },
     // FUNCTION commitSettings commits settings values to localhost:40100/settings.json
-    commitSettings (settingsToCommit: settingsTypes) {
-        return axios.post("/settings.json", JSON.stringify(settingsToCommit))
+    commitSettings (settingsToCommit: settingsTypes, settingString = "") {
+        void doAPIPost(apiSettingsRequestUrl, JSON.stringify(settingsToCommit))
             .then(() => {
-                Log.info(Log.types.DOMAIN, "Successfully committed settings.");
-                return true;
+                Log.info(Log.types.DOMAIN, `Successfully committed settings${settingString}.`);
             })
             .catch((response: string) => {
                 Log.error(Log.types.DOMAIN, `Failed to commit settings to Domain: ${response}`);
-                return false;
+                Notify.create({
+                    type: "negative",
+                    textColor: "white",
+                    icon: "warning",
+                    message: `Failed to commit settings to Domain${settingString}: ${response}`
+                });
             });
     },
     automaticCommitSettings (settingsToCommit: settingsTypes): void {
@@ -66,7 +71,7 @@ export const Settings = {
     async createNewDomainID (newLabel: string): Promise<string> {
         try {
             const domainLabel = `label=${newLabel}`;
-            const response = await axios.post("/api/domains", domainLabel);
+            const response = await doAPIPost(apiDomainRequestUrl, domainLabel);
             if (response.data.status === "failure") {
                 return "";
             }
@@ -80,8 +85,7 @@ export const Settings = {
     async getDomains () {
         let domains = [] as Domains[];
         try {
-            const apiRequestUrl = "api/domains";
-            const domainsResponse = await doAPIGet(apiRequestUrl) as DomainsResponse;
+            const domainsResponse = await doAPIGet(apiDomainRequestUrl) as DomainsResponse;
             domains = domainsResponse.data.domains;
             return domains;
         } catch (error) {

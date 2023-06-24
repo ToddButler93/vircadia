@@ -1,16 +1,15 @@
 // Created 24/01/2023 by Ujean
 
-import { doAPIGet, findErrorMsg } from "src/modules/utilities/apiHelpers";
+import { buildUrl, doAPIGet, doAPIPost, doAPIDelete, findErrorMsg } from "src/modules/utilities/apiHelpers";
 import { Backup, Backups } from "./interfaces/backups";
 
-const axios = require("axios");
+const apiBackupRequestUrl = "api/backups";
 
 export const BackupsList = {
     async getAutomaticBackupsList (): Promise<Backup[]> {
         const response: Backup[] = [];
         try {
-            const apiRequestUrl = "api/backups";
-            const backupsResponse = await doAPIGet(apiRequestUrl) as Backups;
+            const backupsResponse = await doAPIGet(apiBackupRequestUrl) as Backups;
 
             // checks if it is an automatic backup. If so, appends it to the response array
             backupsResponse.backups.forEach(currentBackup => {
@@ -28,8 +27,7 @@ export const BackupsList = {
     async getManualBackupsList (): Promise<Backup[]> {
         const response: Backup[] = [];
         try {
-            const apiRequestUrl = "api/backups";
-            const backupsResponse = await doAPIGet(apiRequestUrl) as Backups;
+            const backupsResponse = await doAPIGet(apiBackupRequestUrl) as Backups;
 
             // checks if it is an automatic backup. If so, appends it to the response array
             backupsResponse.backups.forEach(currentBackup => {
@@ -45,7 +43,7 @@ export const BackupsList = {
         return response;
     },
     generateNewArchive (newArchiveName: string) {
-        return axios.post("/api/backups", `name=${newArchiveName}`)
+        return doAPIPost(apiBackupRequestUrl, `name=${newArchiveName}`)
             .then(() => {
                 console.log("Successfully created new archive.");
                 return true;
@@ -55,8 +53,12 @@ export const BackupsList = {
                 return false;
             });
     },
+    downloadBackup (backupID: string) {
+        const accessUrl = buildUrl(apiBackupRequestUrl + "/download/");
+        window.open(accessUrl + backupID, "_blank");
+    },
     deleteBackup (backupID: string) {
-        return axios.delete(`/api/backups/${backupID}`)
+        return doAPIDelete(apiBackupRequestUrl + `/${backupID}`)
             .then(() => {
                 console.log("Successfully deleted archive.");
                 return true;

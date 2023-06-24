@@ -27,7 +27,8 @@
                                     <q-td>
                                         <q-btn-group>
                                             <q-btn :disable="backup.isCorrupted" flat dense icon="restore"><q-tooltip class="">Restore Content</q-tooltip></q-btn>
-                                            <q-btn flat dense icon="download_for_offline" :href="'/api/backups/download/' + backup.id" target="_blank"><q-tooltip class="">Download</q-tooltip></q-btn>
+                                            <!-- TODO This link needs fixing -->
+                                            <q-btn @click="downloadBackup(backup.id)" flat dense icon="download_for_offline"><q-tooltip class="">Download</q-tooltip></q-btn>
                                             <q-btn @click="showDeleteDialogue(backup.name, backup.createdAtMillis, backup.id)" flat dense icon="delete"><q-tooltip>Delete</q-tooltip></q-btn>
                                         </q-btn-group>
                                     </q-td>
@@ -74,7 +75,8 @@
                                     <q-td>
                                         <q-btn-group>
                                             <q-btn :disable="backup.isCorrupted" flat dense icon="restore"><q-tooltip class="">Restore Content</q-tooltip></q-btn>
-                                            <q-btn flat dense icon="download_for_offline" :href="'/api/backups/download/' + backup.id" target="_blank"><q-tooltip class="">Download</q-tooltip></q-btn>
+                                            <!-- TODO This link needs fixing -->
+                                            <q-btn flat @click="downloadBackup(backup.id)" dense icon="download_for_offline"><q-tooltip class="">Download</q-tooltip></q-btn>
                                             <q-btn @click="showDeleteDialogue(backup.name, backup.createdAtMillis, backup.id)" flat dense icon="delete"><q-tooltip>Delete</q-tooltip></q-btn>
                                         </q-btn-group>
                                     </q-td>
@@ -140,6 +142,9 @@ export default defineComponent({
             BackupsList.generateNewArchive(this.newArchiveName);
             this.clearNewArchiveName();
             this.getBackups();
+        },
+        downloadBackup (backupID: string) {
+            BackupsList.downloadBackup(backupID);
         },
         deleteBackup (backupID: string) {
             BackupsList.deleteBackup(backupID);

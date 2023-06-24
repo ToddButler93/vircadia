@@ -53,10 +53,7 @@
 </template>
 
 <script>
-// FIXME: Needs to be done correctly. Also universally? Maybe window.axios?
-const axios = require("axios");
-
-import Log from "../../../modules/utilities/log";
+import { Metaverse } from "src/modules/domain/metaverse";
 
 export default {
     name: "MetaverseLogin",
@@ -74,51 +71,13 @@ export default {
 
     methods: {
         async onSubmit () {
-            const metaverseUrl = await this.retrieveMetaverseUrl();
-            const result = await this.attemptLogin(metaverseUrl, this.username, this.password);
+            const metaverseUrl = await Metaverse.retrieveMetaverseUrl();
+            const result = await Metaverse.attemptLogin(metaverseUrl, this.username, this.password);
 
             this.$emit("loginResult", { "success": result.success, "metaverse": metaverseUrl, "data": result.response });
         },
 
         // TODO: This needs to be addressed in a more modular fashion to reuse and save state across multiple components.
-        async retrieveMetaverseUrl () {
-            return new Promise((resolve) => {
-                axios.get("/api/metaverse_info")
-                    .then((response) => {
-                        Log.info(Log.types.METAVERSE, `Retrieved Metaverse URL ${response.data.metaverse_url}.`);
-                        resolve(response.data.metaverse_url);
-                    }, (error) => {
-                        Log.error(Log.types.METAVERSE, `Failed to retrieve Metaverse URL, using default URL ${this.DEFAULT_METAVERSE_URL} instead. Error: ${error}`);
-                        resolve(this.DEFAULT_METAVERSE_URL);
-                    });
-            });
-        },
-
-        async attemptLogin (metaverse, username, password) {
-            Log.info(Log.types.METAVERSE, `Attempting to login as ${username}.`);
-
-            return new Promise((resolve) => {
-                axios.post(`${metaverse}/oauth/token`, {
-                    grant_type: "password",
-                    scope: "owner", // as opposed to 'domain', we're asking for a user token
-                    username: username,
-                    password: password
-                })
-                    .then((response) => {
-                        Log.info(Log.types.METAVERSE, `Successfully got key and details for ${username}.`);
-                        resolve({ "success": true, "response": response.data });
-                    }, (error) => {
-                        Log.error(Log.types.METAVERSE, `Failed to get key and details for ${username}.`);
-                        if (error.response && error.response.data) {
-                            resolve({ "success": false, "response": error.response.data });
-                        } else if (error) {
-                            resolve({ "success": false, "response": error });
-                        } else {
-                            resolve({ "success": false, "response": "Unknown reason." });
-                        }
-                    });
-            });
-        },
 
         onReset () {
             this.username = "";

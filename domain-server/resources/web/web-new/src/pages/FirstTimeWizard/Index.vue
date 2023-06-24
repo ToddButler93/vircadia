@@ -642,11 +642,11 @@
 </template>
 
 <script>
-// FIXME: Needs to be done correctly. Also universally? Maybe window.axios?
-const axios = require("axios");
 const sha256 = require("js-sha256");
 
 import { defineComponent, ref } from "vue";
+import { doAPIPost } from "src/modules/utilities/apiHelpers";
+import { Settings } from "src/modules/domain/settings";
 
 // Components
 import ConnectMetaverse from "../../components/dialogs/ConnectMetaverse.vue";
@@ -750,7 +750,7 @@ export default defineComponent({
         saveMetaverseConfiguration () {
             this.mainWizardStep++;
             // TODO: Put this path in a constant somewhere.
-            axios.post("/api/domains", { "domain": { "label": this.domainLabel } },
+            doAPIPost("/api/domains", { "domain": { "label": this.domainLabel } },
                 {
                     params: {
                         label: this.domainLabel
@@ -786,8 +786,8 @@ export default defineComponent({
                 });
         },
 
-        async commitMetaverseConfig (jsonToCommit) {
-            const committed = await this.commitSettings(jsonToCommit);
+        commitMetaverseConfig (jsonToCommit) {
+            const committed = Settings.commitSettings(jsonToCommit, ": Metaverse Config");
 
             if (committed === true) {
                 Log.info(Log.types.METAVERSE, "Successfully committed Domain server config for the Metaverse.");
@@ -808,7 +808,7 @@ export default defineComponent({
             }
         },
 
-        async saveSecuritySettings () {
+        saveSecuritySettings () {
             const friendsCanConnect = this.connectionSecurityModel.includes("friends");
             const friendsCanRez = this.rezSecurityModel.includes("friends");
 
@@ -891,31 +891,13 @@ export default defineComponent({
                 }
             };
 
-            const committed = await this.commitSettings(settingsToCommit);
-
-            if (committed === true) {
-                Log.info(Log.types.METAVERSE, "Successfully saved Domain server security settings.");
-                this.$q.notify({
-                    type: "positive",
-                    textColor: "white",
-                    icon: "cloud_done",
-                    message: "Successfully saved your security settings."
-                });
-            } else {
-                Log.error(Log.types.METAVERSE, "Failed to save Domain server security settings.");
-                this.$q.notify({
-                    type: "negative",
-                    textColor: "white",
-                    icon: "warning",
-                    message: "Failed to save your security settings."
-                });
-            }
+            Settings.commitSettings(settingsToCommit, ": Domain Server Security");
 
             // We move forward anyway, the user can come back if it fails or if they want to change it.
             this.mainWizardStep++;
         },
 
-        async savePerformanceSettings () {
+        savePerformanceSettings () {
             const settingsToCommit = {
                 "audio_threading": {
                     "auto_threads": this.performanceMode
@@ -925,31 +907,13 @@ export default defineComponent({
                 }
             };
 
-            const committed = await this.commitSettings(settingsToCommit);
-
-            if (committed === true) {
-                Log.info(Log.types.DOMAIN, "Successfully saved performance mode setting.");
-                this.$q.notify({
-                    type: "positive",
-                    textColor: "white",
-                    icon: "cloud_done",
-                    message: "Successfully saved performance mode setting."
-                });
-            } else {
-                Log.error(Log.types.DOMAIN, "Failed to save performance mode setting.");
-                this.$q.notify({
-                    type: "negative",
-                    textColor: "white",
-                    icon: "warning",
-                    message: "Failed to save performance mode setting."
-                });
-            }
+            Settings.commitSettings(settingsToCommit, ": Performance mode setting");
 
             // We move forward anyway, the user can come back if it fails or if they want to change it.
             this.mainWizardStep++;
         },
 
-        async onAdminStepSubmit () {
+        onAdminStepSubmit () {
             const settingsToCommit = {
                 "security": {
                     "http_username": this.adminCredentialsUsername,
@@ -957,8 +921,8 @@ export default defineComponent({
                 }
             };
 
-            const committed = await this.commitSettings(settingsToCommit);
-
+            const committed = Settings.commitSettings(settingsToCommit);
+            Log.info(Log.types.OTHER, committed);
             if (committed === true) {
                 Log.info(Log.types.METAVERSE, "Successfully saved Domain server administrator details.");
                 this.$q.notify({
@@ -988,21 +952,15 @@ export default defineComponent({
             this.adminCredentialsConfirmPassword = "";
         },
 
-        async completeWizard () {
+        completeWizard () {
             const settingsToCommit = {
                 "wizard": {
-                    "steps_completed": "0",
-                    "completed_once": true
+                    "completed_once": true,
+                    "steps_completed": "0"
                 }
             };
 
-            const committed = await this.commitSettings(settingsToCommit);
-
-            if (committed === true) {
-                Log.info(Log.types.METAVERSE, "Successfully saved wizard completion.");
-            } else {
-                Log.error(Log.types.METAVERSE, "Failed to save wizard completion.");
-            }
+            Settings.commitSettings(settingsToCommit, ": Wizard Completion");
 
             this.redirectToSettings();
         },
@@ -1021,20 +979,6 @@ export default defineComponent({
                 location.href = redirectURL;
                 this.$q.loading.hide();
             }, this.COMPLETE_WIZARD_REDIRECT_DELAY);
-        },
-
-        // TODO: This needs to go somewhere universal.
-        commitSettings (settingsToCommit) {
-            // TODO: This and all other URL endpoints should be in centralized (in their respective module) constants files.
-            return axios.post("/settings.json", JSON.stringify(settingsToCommit))
-                .then(() => {
-                    Log.info(Log.types.DOMAIN, "Successfully committed settings.");
-                    return true;
-                })
-                .catch((response) => {
-                    Log.error(Log.types.DOMAIN, `Failed to commit settings to Domain: ${response}`);
-                    return false;
-                });
         }
 
         // TODO: Needs to be somewhere universal. NOT TESTED.
@@ -1088,20 +1032,22 @@ export default defineComponent({
     },
 
     watch: {
-        async mainWizardStep () {
+        mainWizardStep () {
             const settingsToCommit = {
                 "wizard": {
                     "steps_completed": this.mainWizardStep.toString()
                 }
             };
 
-            const committed = await this.commitSettings(settingsToCommit);
+            // const committed =
+            Settings.commitSettings(settingsToCommit);
 
-            if (committed === true) {
-                Log.info(Log.types.DOMAIN, "Successfully committed steps completed to Domain server settings.");
-            } else {
-                Log.error(Log.types.DOMAIN, "Failed to commit steps completed to Domain server settings.");
-            }
+            // if (committed === true) {
+            //    Log.info(Log.types.DOMAIN, "Successfully committed steps completed to Domain server settings.");
+            // } else {
+            //    Log.error(Log.types.DOMAIN, "Failed to commit steps completed to Domain server settings.");
+            //    Log.error(Log.types.DOMAIN, committed);
+            // }
         },
 
         adminCredentialsUsername () {

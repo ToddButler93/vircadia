@@ -19,8 +19,8 @@ import { Assignments } from "@Modules/domain/assignments";
 import { Assignment, QueuedAssignment } from "@Base/modules/domain/interfaces/assignments";
 
 const queuedColumns = [
-    { name: "type", align: "left", label: "Type", field: "type" },
-    { name: "id", align: "left", label: "UUID", field: "id" }
+    { name: "type", align: "left", label: "Type", field: "type", sortable: true },
+    { name: "id", align: "left", label: "UUID", field: "id", sortable: true }
 ];
 
 export default defineComponent({

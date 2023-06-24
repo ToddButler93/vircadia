@@ -159,6 +159,7 @@ import { defineComponent } from "vue";
 import { Settings } from "@Modules/domain/settings";
 import { MetaverseSaveSettings, SettingsValues } from "@/src/modules/domain/interfaces/settings";
 import SharedMethods from "@Components/sharedMethods.vue";
+import { DomainsOptions } from "@/src/modules/domain/interfaces/domains";
 
 export default defineComponent({
     name: "MetaverseSettings",
@@ -190,7 +191,7 @@ export default defineComponent({
             showDomainOptions: true,
             chooseDomainLoading: false,
             // Metaverse Account section variables
-            domainsOptions: [] as any,
+            domainsOptions: [] as DomainsOptions [],
             currentDomainOption: "",
             isUserConnected: false,
             newDomainLabel: "",
@@ -242,7 +243,7 @@ export default defineComponent({
             this.chooseDomainLoading = true;
             const domainsList = await Settings.getDomains();
             this.chooseDomainLoading = false;
-            this.domainsOptions = [];
+            this.domainsOptions = [] as DomainsOptions [];
             if (domainsList.length > 0) {
                 this.currentDomainOption = this.domainID;
                 domainsList.forEach(domain => {

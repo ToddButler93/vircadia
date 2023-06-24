@@ -15,10 +15,8 @@
 <script lang="ts">
 import { defineComponent } from "vue";
 import { MetaverseSaveSettings, WebrtcSaveSettings, WordpressSaveSettings, SSLClientAcmeSaveSettings, MonitoringSaveSettings, SecuritySaveSettings } from "../modules/domain/interfaces/settings";
-import { doAPIGet } from "../modules/utilities/apiHelpers";
+import { doAPIGet, doAPIPost } from "../modules/utilities/apiHelpers";
 import Log from "../modules/utilities/log";
-
-const axios = require("axios");
 
 export default defineComponent({
     name: "SharedMethods",
@@ -53,7 +51,7 @@ export default defineComponent({
             this.restartPopup = false;
         },
         commitSettings (settingsToCommit: MetaverseSaveSettings | WebrtcSaveSettings | WordpressSaveSettings | SSLClientAcmeSaveSettings | MonitoringSaveSettings | SecuritySaveSettings) {
-            return axios.post("/settings.json", JSON.stringify(settingsToCommit))
+            return doAPIPost("/settings.json", JSON.stringify(settingsToCommit))
                 .then(() => {
                     Log.info(Log.types.DOMAIN, "Successfully committed settings.");
                     return true;

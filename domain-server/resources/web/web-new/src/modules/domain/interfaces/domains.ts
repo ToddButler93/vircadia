@@ -82,3 +82,7 @@ export interface DomainsResponse {
         total_pages: number;
         total_entries: number;
     }
+export interface DomainsOptions {
+        label: string;
+        value: number;
+}

@@ -1,12 +1,13 @@
 // created 24/01/2023 by Ujean
 
-import { doAPIGet, findErrorMsg } from "src/modules/utilities/apiHelpers";
+import { doAPIGet, doAPIPost, findErrorMsg } from "src/modules/utilities/apiHelpers";
 import { ContentSettingsResponse, ContentSettingsValues, PathsSaveSetting, ScriptsSaveSetting } from "./interfaces/contentSettings";
 import Log from "../../modules/utilities/log";
+import { Notify } from "quasar";
 
-const axios = require("axios");
 const timers: number[] = [];
 type settingsTypes = PathsSaveSetting | ScriptsSaveSetting;
+const apiRequestUrl = "content-settings.json";
 
 export const ContentSettings = {
     // FUNCTION getValues returns values from localhost:40100/content-settings.json
@@ -14,7 +15,6 @@ export const ContentSettings = {
         let response: ContentSettingsValues = {};
 
         try {
-            const apiRequestUrl = "content-settings.json";
             const contentSettingsResponse = await doAPIGet(apiRequestUrl) as ContentSettingsResponse;
 
             response = contentSettingsResponse.values;
@@ -27,15 +27,19 @@ export const ContentSettings = {
         }
         return response;
     },
-    commitSettings (settingsToCommit: settingsTypes) {
-        return axios.post("/content-settings.json", JSON.stringify(settingsToCommit))
+    commitSettings (settingsToCommit: settingsTypes, settingString = "") {
+        void doAPIPost(apiRequestUrl, JSON.stringify(settingsToCommit))
             .then(() => {
-                Log.info(Log.types.DOMAIN, "Successfully committed settings.");
-                return true;
+                Log.info(Log.types.DOMAIN, `Successfully committed settings${settingString}.`);
             })
             .catch((response: string) => {
                 Log.error(Log.types.DOMAIN, `Failed to commit settings to Domain: ${response}`);
-                return false;
+                Notify.create({
+                    type: "negative",
+                    textColor: "white",
+                    icon: "warning",
+                    message: `Failed to commit settings to Domain${settingString}: ${response}`
+                });
             });
     },
     automaticCommitSettings (settingsToCommit: settingsTypes): void {

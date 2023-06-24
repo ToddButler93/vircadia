@@ -1,8 +1,10 @@
 // edited 23/11/2022 by Ujean
 
 import axios from "axios";
+import type { AxiosRequestConfig, AxiosResponse } from "axios";
 
 import { DOMAIN_SERVER_ROOT } from "src/config";
+
 // import Log from "@Modules/debugging/log";
 
 /**
@@ -49,6 +51,29 @@ export async function doAPIGet (pAPIUrl: string, pAPIBaseUrl?: string): Promise<
     } catch (error) {
         const errorMessage = findErrorMsg(error);
         errorString = `Exception on GET ${pAPIUrl}: ${errorMessage}`;
+        console.log(errorString);
+        // Log.error(Log.types.API, `Exception on GET ${pAPIUrl}: ${errMsg}`);
+    }
+    throw new Error(errorString);
+}
+
+export async function doAPIPost (pAPIUrl:string, pData:unknown, pOptions?:AxiosRequestConfig, pAPIBaseUrl?:string): Promise<AxiosResponse> {
+    const accessUrl = buildUrl(pAPIUrl, pAPIBaseUrl);
+
+    let errorString = "";
+    try {
+        const response = await axios.post(accessUrl, pData, pOptions);
+        if (response && response.status) {
+            if (response.status === 200) {
+                return response.data;
+            }
+            errorString = `${response.statusText ?? "unspecified"}`;
+        } else {
+            errorString = `Poorly formed response to POST ${pAPIUrl}: ${JSON.stringify(response)}`;
+        }
+    } catch (error) {
+        const errorMessage = findErrorMsg(error);
+        errorString = `Exception on POST ${pAPIUrl}: ${errorMessage}`;
         console.log(errorString);
         // Log.error(Log.types.API, `Exception on GET ${pAPIUrl}: ${errMsg}`);
     }

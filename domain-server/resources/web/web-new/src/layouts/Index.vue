@@ -24,6 +24,15 @@
           </q-avatar>
           <span class="text-h6 q-ml-sm gt-xs">Domain Server Administration</span>
         </q-toolbar-title>
+        <!-- TODO set World link to world -->
+        <q-btn
+            flat
+            dense
+            icon="mdi-web"
+            aria-label="World Link"
+            :to="'/world'"
+            class="q-mr-sm q-ml-sm"
+        ><span class="gt-xs">World</span></q-btn>
         <div v-if="!isConnected">
           <q-btn :to="'/networking'" class="text-warning" style="background-color: #2D7EB9;" aria-label="Not Connected" flat>NOT CONNECTED</q-btn>
         </div>

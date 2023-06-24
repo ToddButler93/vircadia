@@ -66,21 +66,22 @@ import { Nodes } from "@Modules/domain/nodes";
 import { Node } from "@Modules/domain/interfaces/nodes";
 
 const columns = [
-    { name: "type", align: "left", label: "Type", field: "type" },
-    { name: "version", align: "left", label: "Version", field: "version" },
+    { name: "type", align: "left", label: "Type", field: "type", sortable: true },
+    { name: "version", align: "left", label: "Version", field: "version", sortable: true },
     {
         name: "uuid",
         align: "left",
         label: "UUID",
         field: "uuid",
         style: "max-width: 200px",
-        headerStyle: "max-width: 200px"
+        headerStyle: "max-width: 200px",
+        sortable: true
     },
-    { name: "username", align: "left", label: "Username", field: "username" },
-    { name: "public", align: "left", label: "Public", field: "public" },
-    { name: "local", align: "left", label: "Local", field: "local.ip" },
-    { name: "uptime", align: "left", label: "Uptime (s)", field: "uptime" },
-    { name: "kill", align: "left", label: "Kill ?", field: "uuid" }
+    { name: "username", align: "left", label: "Username", field: "username", sortable: true },
+    { name: "public", align: "left", label: "Public", field: "public", sortable: true },
+    { name: "local", align: "left", label: "Local", field: "local.ip", sortable: true },
+    { name: "uptime", align: "left", label: "Uptime (s)", field: "uptime", sortable: true },
+    { name: "kill", align: "left", label: "Kill ?", field: "uuid", sortable: true }
 ];
 
 export default defineComponent({
